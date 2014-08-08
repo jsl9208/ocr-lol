@@ -183,12 +183,17 @@ app.get('/getInfo/:name', function(req, res) {
 
 
 app.post('/getRankInfoWithImageData', function(req, res) {
-  console.log(req.files.image);
-  var tmp_path = req.files.image.path;
-  var imageBuf = fs.readFileSync(tmp_path);
-  var encodedData = imageBuf.toString('base64');
-  
-  //var encodedData = req.body.data;
+  // console.log(req.files.image);
+  var encodedData;
+
+  if (req.files) {
+    var tmp_path = req.files.image.path;
+    var imageBuf = fs.readFileSync(tmp_path);
+    encodedData = imageBuf.toString('base64');
+  } else {
+    encodedData = req.body.data;
+  }
+
   if (encodedData == undefined || !encodedData) {
     res.json({statues: 'Error', error: 'POST error'});
     return;
