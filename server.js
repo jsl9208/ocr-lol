@@ -10,7 +10,22 @@ var img = require('lwip');
 
 var request = require('request');
 var _ = require('underscore');
-var APP_KEY = "db23f5ab-dc30-4439-8eb5-77caa746d311";
+var APP_KEY = [
+  "db23f5ab-dc30-4439-8eb5-77caa746d311",
+  "23c905fd-c6b7-4fdf-803c-3e960e47e227",
+  "25bf6a70-64af-4168-a010-2fe161dce4eb",
+  "0d5f306d-fcde-4821-9631-b0af7279cd2b",
+  "a8ae7d5f-b085-4941-9b5e-003d6a08b08e",
+  "33bc1a79-4247-4a7c-9a89-cd857be93285",
+  "e5c5ee48-0eb4-4a44-98fb-10608956aaec",
+  "93becfe9-f7b2-4f27-a065-73ad275cda55",
+  "88c91081-2488-442f-8e03-044b9b0d7ee2",
+  "9fed0793-7fb0-44bd-abea-7ff1cb5be74f"
+];
+
+var key = function() {
+  return APP_KEY[parseInt(Math.random()*APP_KEY.length)];
+}
 
 /** trim() method for String */
 String.prototype.trim = function() {
@@ -49,12 +64,12 @@ var ocr = function(type, src, G, T, callback) {
     i += 4; //alpha is ignored
   }
   var jpegImageData = jpeg.encode(rawImageData);
-  var file = fs.createWriteStream('result1.jpg');
+  var file = fs.createWriteStream('result1_' + G + '_' + T + '.jpg');
   file.write(jpegImageData.data, function() {
-    img.open('result1.jpg', function(err, image) {
+    img.open('result1_' + G + '_' + T + '.jpg', function(err, image) {
       image.resize(image.width()*30/image.height(), 30, function(err, image) {
-        image.writeFile('result2.jpg', function() {
-          nodecr.process('result2.jpg',function(err, text) {
+        image.writeFile('result2_' + G + '_' + T + '.jpg', function() {
+          nodecr.process('result2_' + G + '_' + T + '.jpg',function(err, text) {
             if (callback != undefined) callback(err, text);
           }, 'eng', 7);
         });
@@ -68,7 +83,7 @@ var ocr = function(type, src, G, T, callback) {
 // get Summoner info by name
 // callback(json)
 var getInfo = function(name, callback) {
-  var api = 'https://na.api.pvp.net/api/lol/na/v1.4/summoner/by-name/' + name + '?api_key=' + APP_KEY;
+  var api = 'https://na.api.pvp.net/api/lol/na/v1.4/summoner/by-name/' + name + '?api_key=' + key();
   var data = {}, error = "";
   data['name'] = name;
   console.log('Name: ' + name);
@@ -80,7 +95,7 @@ var getInfo = function(name, callback) {
           var id = json[i].id;
           data['id'] = id;
           console.log('ID: ' + id);
-          api = 'https://na.api.pvp.net/api/lol/na/v2.4/league/by-summoner/' + id + '?api_key=' + APP_KEY;
+          api = 'https://na.api.pvp.net/api/lol/na/v2.4/league/by-summoner/' + id + '?api_key=' + key();
           var sync = 0;
           request(api, function (er, response, body) {
             if (!er) {
@@ -99,11 +114,11 @@ var getInfo = function(name, callback) {
             } else error = 'Connection error';
             sync++;
             if (sync == 2) {
-              if (error != "") callback({statues: 'Error', error: error, name: name});
-              else callback({statues: 'Success', data: data});
+              if (error != "") callback({status: 'Error', error: error, name: name});
+              else callback({status: 'Success', data: data});
             }   
           });
-          api = 'https://na.api.pvp.net/api/lol/na/v1.3/stats/by-summoner/' + id + '/summary?season=SEASON4&api_key=' + APP_KEY;
+          api = 'https://na.api.pvp.net/api/lol/na/v1.3/stats/by-summoner/' + id + '/summary?season=SEASON4&api_key=' + key();
           request(api, function (er, response, body) {
             if (!er) {
               if (response.statusCode == 200) {
@@ -122,12 +137,12 @@ var getInfo = function(name, callback) {
           });
           sync++;
           if (sync == 2) {
-            if (error != "") callback({statues: 'Error', error: error, name: name});
-            else callback({statues: 'Success', data: data});
+            if (error != "") callback({status: 'Error', error: error, name: name});
+            else callback({status: 'Success', data: data});
           }   
         }
-      } else callback({statues: 'Error', error: 'Wrong summoner name', name: name});
-    } else callback({statues: 'Error', error: 'Connection error', name: name});     
+      } else callback({status: 'Error', error: 'Wrong summoner name', name: name});
+    } else callback({status: 'Error', error: 'Connection error', name: name});     
   });
 }
 
@@ -137,28 +152,6 @@ var getInfo = function(name, callback) {
 ocr('test3.jpg', 200, 100, function(err, text) {
   console.log('Text: ' + text);
 })
-*/
-
-var getInfoByImage = function(image, callback) {
-  ocr('image', image, 200, 100, function(err, text) {
-    text = text.trim();
-    getInfo(text, callback);
-  })
-}
-
-var getInfoByBase64Image = function(encodedData, callback) {
-  ocr('encodedData', encodedData, 200, 100, function(err, text) {
-    text = text.trim();
-    getInfo(text, callback);
-  })
-
-}
-
-
-/* 
-getInfoByPhoto('test4.jpg', function(data) {
-  console.log(data);
-});
 */
 
 
@@ -186,24 +179,45 @@ app.post('/getRankInfoWithImageData', function(req, res) {
   // console.log(req.files.image);
   var encodedData;
 
-  if (req.files) {
-    var tmp_path = req.files.image.path;
-    var imageBuf = fs.readFileSync(tmp_path);
-    encodedData = imageBuf.toString('base64');
-  } else {
-    encodedData = req.body.data;
-  }
+  // var tmp_path = req.files.image.path;
+  // var imageBuf = fs.readFileSync(tmp_path);
+  // encodedData = imageBuf.toString('base64');
+
+  encodedData = req.body.data;
 
   if (encodedData == undefined || !encodedData) {
-    res.json({statues: 'Error', error: 'POST error'});
+    res.json({status: 'Error', error: 'POST error'});
     return;
   }
-  ocr('encodedData', encodedData, 200, 100, function(err, text) {
-    text = text.trim();
-    getInfo(text, function(data) {
-      res.json(data);
-    });
-  })
+  var sync = 49;
+  var arr = [];
+  for (var G = 240; G >= 180; G -= 10)
+    for (var T = 40; T <= 100; T += 10) {
+      ocr('encodedData', encodedData, G, T, function(err, text) {
+        text = text.trim();
+        //console.log(text);
+        sync--;
+        if (text.match(/^(\w|\s)*$/g)) {
+          console.log(text);
+          // getInfo(text, function(data) {
+          //   res.json(data);
+          // });
+          arr.push(text);
+        }
+        if (sync == 0) {
+          arr = _.uniq(arr);
+          console.log(arr);
+          for (var i in arr) {
+            var name = arr[i];
+            getInfo(name, function(data) {               if (data['status'] == 'Success') {
+                res.json(data);
+                return;
+              }              
+            });
+          }
+        }
+      })
+    }
 });
 
 app.listen(port);
