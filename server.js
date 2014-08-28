@@ -190,6 +190,7 @@ app.post('/getRankInfoWithImageData', function(req, res) {
     return;
   }
   var sync = 49;
+  var end = false;
   var arr = [];
   for (var G = 240; G >= 180; G -= 10)
     for (var T = 40; T <= 100; T += 10) {
@@ -209,9 +210,9 @@ app.post('/getRankInfoWithImageData', function(req, res) {
           console.log(arr);
           for (var i in arr) {
             var name = arr[i];
-            getInfo(name, function(data) {               if (data['status'] == 'Success') {
-                res.json(data);
-                return;
+            getInfo(name, function(data) {               if (data['status'] == 'Success' && !end) {
+                res.end(JSON.stringify(data));
+                end = true;
               }              
             });
           }
