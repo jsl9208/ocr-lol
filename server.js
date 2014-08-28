@@ -85,7 +85,6 @@ var ocr = function(type, src, G, T, callback) {
 var getInfo = function(name, callback) {
   var api = 'https://na.api.pvp.net/api/lol/na/v1.4/summoner/by-name/' + name + '?api_key=' + key();
   var data = {}, error = "";
-  data['name'] = name;
   console.log('Name: ' + name);
   request(api, function (er, response, body) {
     if (!er) {
@@ -93,6 +92,7 @@ var getInfo = function(name, callback) {
         var json = JSON.parse(body);
         for (var i in json) {
           var id = json[i].id;
+          data['name'] = json[i].name;
           data['id'] = id;
           console.log('ID: ' + id);
           api = 'https://na.api.pvp.net/api/lol/na/v2.4/league/by-summoner/' + id + '?api_key=' + key();
