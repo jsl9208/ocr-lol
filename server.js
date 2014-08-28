@@ -203,6 +203,7 @@ app.post('/getRankInfoWithImageData', function(req, res) {
           // getInfo(text, function(data) {
           //   res.json(data);
           // });
+          text.replace(' ', '');
           arr.push(text);
         }
         if (sync == 0) {
