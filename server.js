@@ -192,8 +192,8 @@ app.post('/getRankInfoWithImageData', function(req, res) {
   var sync = 49;
   var end = false;
   var arr = [];
-  for (var G = 240; G >= 180; G -= 10)
-    for (var T = 40; T <= 100; T += 10) {
+  for (var G = 240; G >= 180; G -= 20)
+    for (var T = 40; T <= 100; T += 20) {
       ocr('encodedData', encodedData, G, T, function(err, text) {
         text = text.trim();
         //console.log(text);
