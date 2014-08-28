@@ -203,7 +203,8 @@ app.post('/getRankInfoWithImageData', function(req, res) {
           // getInfo(text, function(data) {
           //   res.json(data);
           // });
-          text.replace(' ', '');
+          text = text.replace(/\s/g, '');
+          text = text.toLowerCase();
           arr.push(text);
         }
         if (sync == 0) {
@@ -212,7 +213,7 @@ app.post('/getRankInfoWithImageData', function(req, res) {
           for (var i in arr) {
             var name = arr[i];
             getInfo(name, function(data) {               if (data['status'] == 'Success' && !end) {
-                res.end(JSON.stringify(data));
+                res.json(data);
                 end = true;
               }              
             });
