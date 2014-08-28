@@ -189,11 +189,17 @@ app.post('/getRankInfoWithImageData', function(req, res) {
     res.json({status: 'Error', error: 'POST error'});
     return;
   }
-  var sync = 49;
+  var max_G  = 240,
+      min_G  = 180,
+      step_G = 20,  
+      min_T  = 40,
+      max_T  = 100,
+      step_T = 20;
+  var sync = ((max_G - min_G)/step_G + 1)*((max_T - min_T)/step_T + 1);
   var end = false;
   var arr = [];
-  for (var G = 240; G >= 180; G -= 20)
-    for (var T = 40; T <= 100; T += 20) {
+  for (var G = max_G; G >= min_G; G -= step_G)
+    for (var T = min_T; T <= max_T; T += step_T) {
       ocr('encodedData', encodedData, G, T, function(err, text) {
         text = text.trim();
         //console.log(text);
