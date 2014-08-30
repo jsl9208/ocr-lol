@@ -64,12 +64,17 @@ var ocr = function(type, src, G, T, callback) {
     i += 4; //alpha is ignored
   }
   var jpegImageData = jpeg.encode(rawImageData);
-  var file = fs.createWriteStream('result1_' + G + '_' + T + '.jpg');
+  var tmp = (new Date()).getTime() + '_' + Math.random()*10000;
+  var path_1 = 'tmp/result1_' + G + '_' + T + '_' + tmp + '.jpg';
+  var path_2 = 'tmp/result2_' + G + '_' + T + '_' + tmp + '.jpg';
+  var file = fs.createWriteStream(path_1);
   file.write(jpegImageData.data, function() {
-    img.open('result1_' + G + '_' + T + '.jpg', function(err, image) {
+    img.open(path_1, function(err, image) {
       image.resize(image.width()*30/image.height(), 30, function(err, image) {
-        image.writeFile('result2_' + G + '_' + T + '.jpg', function() {
-          nodecr.process('result2_' + G + '_' + T + '.jpg',function(err, text) {
+        image.writeFile(path_2, function() {
+          nodecr.process(path_2, function(err, text) {
+            fs.unlink(path_1);
+            fs.unlink(path_2);
             if (callback != undefined) callback(err, text);
           }, 'eng', 7);
         });
@@ -177,15 +182,17 @@ app.get('/getInfo/:name', function(req, res) {
 
 app.post('/getRankInfoWithImageData', function(req, res) {
   // console.log(req.files.image);
-  var encodedData;
+  var encodedData = "";
 
-  // var tmp_path = req.files.image.path;
-  // var imageBuf = fs.readFileSync(tmp_path);
-  // encodedData = imageBuf.toString('base64');
+  if (req.body.data) {
+    encodedData = req.body.data;
+  } else {
+    var tmp_path = req.files.image.path;
+    var imageBuf = fs.readFileSync(tmp_path);
+    encodedData = imageBuf.toString('base64');
+  }
 
-  encodedData = req.body.data;
-
-  if (encodedData == undefined || !encodedData) {
+  if (encodedData == "") {
     res.json({status: 'Error', error: 'POST error'});
     return;
   }
