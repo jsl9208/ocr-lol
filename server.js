@@ -223,12 +223,25 @@ app.post('/getRankInfoWithImageData', function(req, res) {
         if (sync == 0) {
           arr = _.uniq(arr);
           console.log(arr);
+          var s = arr.length;
           for (var i in arr) {
             var name = arr[i];
-            getInfo(name, function(data) {               if (data['status'] == 'Success' && !end) {
+            if (name == "") {
+              s--;
+              if (s == 0 && end == false) {
+                res.json({status: 'Error'});
+              }
+              else continue;
+            }
+            getInfo(name, function(data) { 
+              s--;              
+              if (data['status'] == 'Success' && !end) {
                 res.json(data);
                 end = true;
-              }              
+              }  
+              if (s == 0 && end == false) {
+                res.json({status: 'Error'});
+              }          
             });
           }
         }
